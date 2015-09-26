@@ -8,7 +8,7 @@
 # {
 #      "sender"  : "...",
 #      "subject" : "...",
-#      "message" : ["...", "...", ...]
+#      "message" : ["...", "...", ...],
 #      "santas"  : {
 #          "Aaron" : "aaron_mail",
 #          "Bryce" : "bryce_mail"
@@ -28,30 +28,27 @@ import json
 import random as elf
 import getpass as gp
 import smtplib
+
+from collections import deque
+
 from email.mime.text import MIMEText
 from email.utils import parseaddr
 
 with open('santas.json', 'r') as f:
     config = json.load(f)
     message = "\n".join(config["message"])
-    santas  = config["santas"]
+    santas  = list(config["santas"].keys())
 
-imps = list(santas.keys())
-
+# shuffle the santas and create the pairing
+# by rotating the shuffled list by one.
+# That way there is a perfect match for
+# everyone and the relations form a loop,
+# see: http://stackoverflow.com/a/303476/839079
 elf.seed()
-for _ in range(100):
-    elf.shuffle(imps)
-
-# draw a match for each santa
-secret_santa = dict()
-for santa, mail in santas.items():
-    imp = elf.choice(imps)
-    while imp == santa:
-        imp = elf.choice(imps)
-
-    secret_santa[santa] = imp
-    imps.remove(imp)
-    elf.shuffle(imps)
+elf.shuffle(santas)
+imps = deque(santas)
+imps.rotate()
+secret_santas = dict(zip(santas, imps))
 
 # prompt for username and check for correct format
 user = input('Username: ')
@@ -64,11 +61,11 @@ else:
 pwd  = gp.getpass()
 
 # send a mail to each participant
-for santa, imp in secret_santa.items():
+for santa, imp in secret_santas.items():
     msg = MIMEText(message.format(santa, imp))
     msg['Subject'] = config["subject"]
     msg['From']    = config["sender"]
-    msg['To']      = santas[santa]
+    msg['To']      = config["santas"][santa]
 
     s = smtplib.SMTP(server, 587)
     s.starttls()
