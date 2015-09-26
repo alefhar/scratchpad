@@ -1,0 +1,11 @@
+{
+    "lane_length"  : 1000,
+    "cell_length"  : 7.5,
+    "density"      : 0.5,
+    "delay_factor" : 0.3,
+    "history"      : 10,
+    "v_max"        : 5,
+    "delta_t"      : 1,
+    "empty"        : -2,
+    "num_cars"     : 1
+}
