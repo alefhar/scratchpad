@@ -10,9 +10,15 @@
 #      "subject" : "...",
 #      "message" : ["...", "...", ...],
 #      "santas"  : {
-#          "Aaron" : "aaron_mail",
-#          "Bryce" : "bryce_mail"
+#          "Aaron"    : "aaron_mail",
+#          "Bryce"    : "bryce_mail",
+#          "Cathrine" : "cathrine_mail",
+#          "Donna"    : "donna_mail",
+#      },
+#     "exemptions" : {
+#         "Cathrine" : "Donna" # Cathrine doesn't gift to Donna
 #      }
+#          
 # }
 #
 # To send the mails a prompt asks for username
@@ -38,17 +44,25 @@ with open('santas.json', 'r') as f:
     config = json.load(f)
     message = "\n".join(config["message"])
     santas  = list(config["santas"].keys())
+    exemptions = config["exemptions"]
 
 # shuffle the santas and create the pairing
 # by rotating the shuffled list by one.
 # That way there is a perfect match for
 # everyone and the relations form a loop,
 # see: http://stackoverflow.com/a/303476/839079
+is_valid = False
 elf.seed()
-elf.shuffle(santas)
-imps = deque(santas)
-imps.rotate()
-secret_santas = dict(zip(santas, imps))
+while not is_valid:
+    for i in range(0, 3):
+        elf.shuffle(santas)
+    imps = deque(santas)
+    imps.rotate()
+    secret_santas = dict(zip(santas, imps))
+    is_valid = True
+    for start in exemptions:
+        if secret_santas[start] == exemptions[start]:
+            is_valid = False;
 
 # prompt for username and check for correct format
 user = input('Username: ')
@@ -62,7 +76,7 @@ pwd  = gp.getpass()
 
 # send a mail to each participant
 for santa, imp in secret_santas.items():
-    msg = MIMEText(message.format(santa, imp))
+    msg = MIMEText(message.format(santa, imp), sender)
     msg['Subject'] = config["subject"]
     msg['From']    = config["sender"]
     msg['To']      = config["santas"][santa]
