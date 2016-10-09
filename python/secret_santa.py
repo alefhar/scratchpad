@@ -76,13 +76,16 @@ pwd  = gp.getpass()
 
 # send a mail to each participant
 for santa, imp in secret_santas.items():
-    msg = MIMEText(message.format(santa, imp), sender)
+    print("sending message to {0}...".format(santa))
+    sender = config["sender"]
+    msg = MIMEText(message.format(santa, imp, sender))
     msg['Subject'] = config["subject"]
-    msg['From']    = config["sender"]
+    msg['From']    = config["santas"][sender]
     msg['To']      = config["santas"][santa]
 
     s = smtplib.SMTP(server, 587)
     s.starttls()
     s.login(user, pwd)
     s.send_message(msg)
+    print("message sent to {0}...\n".format(santa))
     s.quit()
